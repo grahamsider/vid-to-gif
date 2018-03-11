@@ -2,7 +2,7 @@
 
 REM - Startup info...
 
-echo ~/~    FFMPEG VID-TO-GIF v1.2 by Graham Sider    ~/~
+echo ~/~    FFMPEG VID-TO-GIF v1.3 by Graham Sider    ~/~
 echo ~/~    This program will convert any video file to a 30fps GIF    ~/~
 echo ~/~    PLEASE NOTE: In order to use this program, FFMPEG must be properly installed    ~/~
 echo ~/~    Visit https://www.ffmpeg.org/ for more information    ~/~
@@ -10,8 +10,15 @@ echo.
 
 REM - Conversion
 
+:GETDIR
 set /p inputDir="Enter input file path and extension (e.g. input.mp4, C:\dir_path\input.mkv, etc): "
 echo.
+
+IF NOT EXIST %inputDir% (
+	echo ~/~    ERROR -- File not found    ~/~
+	echo.
+	GOTO GETDIR
+)
 
 set /p outputDir="Enter output file path (e.g. output, C:\dir_path\output, etc -- file extension not needed [will be ".gif"]): "
 echo.
@@ -36,21 +43,35 @@ IF %ERRORLEVEL% NEQ 0 (
  	echo ~/~    ERROR -- Exiting...    ~/~
  	echo.
  	pause
-) ELSE (
+	exit
+)
 
 REM - No error found...
 
-	echo ~/~    PALETTE CREATION SUCCESSFUL    ~/~
+echo ~/~    PALETTE CREATION SUCCESSFUL    ~/~
+echo.
+pause
+
+echo ~/~    CREATING OUTPUT GIF    ~/~
+echo.
+ffmpeg -y -i %inputDir% -i %TEMP%/palette.png -filter_complex "fps=%fps%,scale=%width%:-1:flags=lanczos[x];[x][1:v]paletteuse" %outputDir%.gif
+echo.
+
+rm %TEMP%/palette.png
+echo ~/~    GIF CREATION SUCCESSFUL    ~/~
+
+:CONVERTCOMPLETE
+echo.
+set /p newFile="Convert another file? (y/n): "
+echo.
+
+IF %newFile%==y GOTO GETDIR
+IF %newFile%==n (
+	echo ~/~    Exiting...    ~/~
 	echo.
 	pause
-
-	echo ~/~    CREATING OUTPUT GIF    ~/~
-	echo.
-	ffmpeg -y -i %inputDir% -i %TEMP%/palette.png -filter_complex "fps=%fps%,scale=%width%:-1:flags=lanczos[x];[x][1:v]paletteuse" %outputDir%.gif
-	echo.
-
-	rm %TEMP%/palette.png
-	echo ~/~    GIF CREATION SUCCESSFULL, PROGRAM COMPLETE    ~/~
-	echo.
-	pause
+	exit
 )
+
+echo ~/~    Invalid input...    ~/~
+GOTO CONVERTCOMPLETE
