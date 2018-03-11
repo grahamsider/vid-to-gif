@@ -2,9 +2,10 @@
 
 REM - Startup info...
 
-echo ~/~ FFMPEG VID-TO-GIF v1.1 by Graham Sider ~/~
-echo ~/~ This program will convert any video file to a 30fps GIF ~/~
-echo ~/~ PLEASE NOTE: In order to use this program, FFMPEG must be properly installed. Visit https://www.ffmpeg.org/ for more information. ~/~
+echo ~/~    FFMPEG VID-TO-GIF v1.2 by Graham Sider    ~/~
+echo ~/~    This program will convert any video file to a 30fps GIF    ~/~
+echo ~/~    PLEASE NOTE: In order to use this program, FFMPEG must be properly installed    ~/~
+echo ~/~    Visit https://www.ffmpeg.org/ for more information    ~/~
 echo.
 
 REM - Conversion
@@ -15,35 +16,41 @@ echo.
 set /p outputDir="Enter output file path (e.g. output, C:\dir_path\output, etc -- file extension not needed [will be ".gif"]): "
 echo.
 
-set /p width="Enter desired output scaling (via width in pixels -- e.g. 1920, 1280, etc. [input "-1" for no scaling]): "
+echo ~/~    NOTE: larger scaling or a higher framerate will result in a larger file size    ~/~
 echo.
 
-echo ~/~ CREATING TEMPORARY PALETTE ~/~
+set /p width="Enter desired scale of output (via width in pixels -- e.g. 1920, 1280, etc. [input "-1" for no scaling]): "
 echo.
-ffmpeg -y -i %inputDir% -vf fps=30,scale=%width%:-1:flags=lanczos,palettegen %TEMP%/palette.png
+
+set /p fps="Enter desired framerate of output (e.g. 60, 30, 24, etc.): "
+echo.
+
+echo ~/~    CREATING TEMPORARY PALETTE    ~/~
+echo.
+ffmpeg -y -i %inputDir% -vf fps=%fps%,scale=%width%:-1:flags=lanczos,palettegen %TEMP%/palette.png
 echo.
 
 REM - Error checking...
 
 IF %ERRORLEVEL% NEQ 0 (
- 	echo ~/~ ERROR -- Exiting... ~/~
+ 	echo ~/~    ERROR -- Exiting...    ~/~
  	echo.
  	pause
 ) ELSE (
 
 REM - No error found...
 
-	echo ~/~ PALETTE CREATION SUCCESSFUL ~/~
+	echo ~/~    PALETTE CREATION SUCCESSFUL    ~/~
 	echo.
 	pause
 
-	echo ~/~ CREATING OUTPUT GIF ~/~
+	echo ~/~    CREATING OUTPUT GIF    ~/~
 	echo.
-	ffmpeg -y -i %inputDir% -i %TEMP%/palette.png -filter_complex "fps=30,scale=%width%:-1:flags=lanczos[x];[x][1:v]paletteuse" %outputDir%.gif
+	ffmpeg -y -i %inputDir% -i %TEMP%/palette.png -filter_complex "fps=%fps%,scale=%width%:-1:flags=lanczos[x];[x][1:v]paletteuse" %outputDir%.gif
 	echo.
 
 	rm %TEMP%/palette.png
-	echo ~/~ GIF CREATION SUCCESSFULL, PROGRAM COMPLETE ~/~
+	echo ~/~    GIF CREATION SUCCESSFULL, PROGRAM COMPLETE    ~/~
 	echo.
 	pause
 )
